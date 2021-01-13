@@ -176,3 +176,50 @@ Compile CCTM preprocess:
 
 .......END.........
 
+
+Running a test case: Benchmark simulations
+
+
+creating private modules:
+    -cd
+    - mkdir ~/privatemodules
+    -mkdir -p ~/privatemodules/cmaq/gcc-mpich
+    -put 5.3.2 file under gcc-mpich directory (attached with this repository & change parameters based on your installation path)
+    -check:
+        -module purge
+        -module load use.own
+        -module avail
+        -now you'll see cmaq/gcc-mpich/5.3.2 module under privatemodules section
+        -module load cmaq/gcc-mpich/5.3.2
+
+CMAQ Benchmark data run
+
+    -first download Benchmark data from following Website
+        https://drive.google.com/drive/folders/1jAKw1EeEzxLSsmalMplNwYtUv08pwUYk
+    -then untar these files
+    -here on ARGO cluster data was downloaded centrally and stored in the following directory
+        /mnt/beegfs/home/btemelso/cmaq/5.3.2/CMAQ_DATA/CMAQv5.3.2_Benchmark_2Day_Input/2016_12SE1
+
+    -since this is big file so I just linked this data to my data directory (/projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/CMAQ_Project/data)
+    -cd /projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/CMAQ_Project/data
+    -ln -sf /mnt/beegfs/home/btemelso/cmaq/5.3.2/CMAQ_DATA/CMAQv5.3.2_Benchmark_2Day_Input/2016_12SE1 .
+    -ls -lart
+        make sure it linked to the proper directory where data was downloaded originially
+    -now go to CCTM/scripts directory
+        cd /projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/CMAQ_Project/CCTM/scripts
+    -here I've modified run_cctm_Bench_2016_12SE1.csh little bit (please see the attached script on repository: srun_cctm_Bench_2016_12SE1-2nodes.csh)
+        -in this file i've mentioned to use srun to run the file which increased the efficiency of the run
+        -srun_cctm_Bench_2016_12SE1-2nodes.csh file
+    -slurm script (see test-2nodes.slurm) was created to run srun_cctm_Bench_2016_12SE1-2nodes.csh file
+
+    -notes: in srun_cctm_Bench_2016_12SE1-2nodes.csh script if NPCOL=6 and NPROW=4 it means in our slurm script we'll put 6X4=24 cores
+    -sbatch test-2nodes.slurm
+    -check log output files
+    -check run by command: squeue -u $USER
+
+
+
+
+
+
+

@@ -1,29 +1,178 @@
 Installation of CMAQ 5.3.2 on GMU ARGO cluster
 
 
-Objective:
+1. Objective:
 -installation of libraries required by CMAQ
 -installation of CMAQ from github
 
 Website: https://github.com/USEPA/CMAQ
 
-Definition:
+2. Definition:
 
 CMAQ: CMAQ is an active open-source development project of the U.S. EPA's Office of Research and Development that consists of a suite of programs for conducting air quality model simulations. 
 
 
-Libraries to be installed:
-1. netcdf-c
-2. netcdf-fortran
-3. I/O API
-4. mpich
+3. Libraries to be installed:
+        1. netcdf-c
+        2. netcdf-fortran
+        3. I/O API
+        4. mpich
+
+4. Operating procedure:
+
+-login into GMU ARGO cluster using your id password
+
+-we've installed CMAQ in our project directory. so steps that I've followed will be mentioned here from our perspective.
+
+-first go to project directory using:
+    cd /projects/HAQ_LAB/mrasel
+
+-create new directory: 
+    mkdir cmaq
+
+-Directory structure:
+
+cmaq
+    -Build_CMAQ             Main Directory
+        -LIBRARIES          Library Directory where libraries will be installed
+        -src                Directory for Source Code downloaded files
+        -CMAQ_Project       CMAQ Directory
 
 
+-mkdir -p /projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/LIBRARIES
+
+-Install mpich Library:
+
+    -mkdir /projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/src
+    -cd /projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/src
+    -wget https://www.mpich.org/static/downloads/3.3/mpich-3.3.tar.gz
+    -tar -xzvf mpich-3.3.tar.gz
+    -cd mpich-3.3
+    -./configure --prefix=/projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/LIBRARIES/mpich
+    -make -j 4
+    -make install  
+    -vi /projects/HAQ_LAB/mrasel/cmaq/.bash_profile
+        ### mpich
+        export PATH=/projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/LIBRARIES/mpich/bin:$PATH
+        export LD_LIBRARY_PATH=/projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/LIBRARIES/mpich/lib:$LD_LIBRARY_PATH
+    -:qw (save and quit)
+    -source /projects/HAQ_LAB/mrasel/cmaq/.bash_profile
+
+-Install netcdf-c Library:
+
+    -cd /projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/src
+    -wget https://www.unidata.ucar.edu/downloads/netcdf/ftp/netcdf-c-4.7.0.tar.gz
+    -tar xzvf netcdf-c-4.7.0.tar.gz
+    -cd netcdf-c-4.7.0
+    -./configure --prefix=/projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/LIBRARIES/netcdf --disable-netcdf-4
+    -make
+    -make install
+    -vi /projects/HAQ_LAB/mrasel/cmaq/.bash_profile
+        ### netcdf
+        export PATH=/projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/LIBRARIES/netcdf/bin:$PATH
+        export LD_LIBRARY_PATH=/projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/LIBRARIES/netcdf/lib:$LD_LIBRARY_PATH
+    -source /projects/HAQ_LAB/mrasel/cmaq/.bash_profile
+
+-Install netcdf-fortran Library:
+
+    -cd /projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/src
+    -wget https://www.unidata.ucar.edu/downloads/netcdf/ftp/netcdf-fortran-4.4.5.tar.gz
+    -tar xzvf netcdf-fortran-4.4.5.tar.gz
+    -cd netcdf-fortran-4.4.5
+    -export LD_LIBRARY_PATH=/projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/LIBRARIES/netcdf/lib:$LD_LIBRARY_PATH
+    -CPPFLAGS="-I/projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/LIBRARIES/netcdf/include" LDFLAGS="-L/projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/LIBRARIES/netcdf/lib" ./configure --prefix=/projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/LIBRARIES/netcdf
+    -make
+    -make install
 
 
+Install I/O API Library:
+
+    -cd /projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/src
+    -wget https://www.cmascenter.org/ioapi/download/ioapi-3.2.tar.gz
+    -mkdir ioapi
+    -cd ioapi
+    -tar -xvzf ../ioapi-3.2.tar.gz
+    -export BIN=Linux2_x86_64gfort
+    -mkdir Linux2_x86_64gfort
+    -ln -sf /projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/LIBRARIES/netcdf/lib/* Linux2_x86_64gfort/
+    -cp ioapi/Makefile.nocpl ioapi/Makefile
+    -cp m3tools/Makefile.nocpl m3tools/Makefile
+    -cp Makefile.template Makefile
+    -vi Makefile
+            ----------   I/O API Build System directory definitions  -------- 
+
+        LIBINST = /projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/LIBRARIES/ioapi/lib
+        BININST = /projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/LIBRARIES/ioapi/bin
+        CPLMODE = nocpl
+        PVMINCL = /dev/null
+        VERSION = 3.2-${CPLMODE}
+        BASEDIR = ${PWD}
+        NCFLIBS = -L/projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/LIBRARIES/netcdf/lib -lnetcdf -lnetcdff
+        IODIR = $(BASEDIR)/ioapi
+        FIXDIR = $(IODIR)/fixed_src
+        HTMLDIR = $(BASEDIR)/HTML
+        TOOLDIR = $(BASEDIR)/m3tools
+        OBJDIR = $(BASEDIR)/$(BIN)
+    -:wq
+    -make configure
+    -make
+    -make install
+    -cp /projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/src/ioapi/ioapi/fixed_src/* /projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/LIBRARIES/ioapi/lib/
 
 
+Compile CMAQ from github:
+
+    -cd /projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/src
+    -wget https://github.com/USEPA/CMAQ/archive/CMAQv5.3.2_12Oct2020.zip
+    -unzip CMAQv5.3.2_12Oct2020.zip
+    -cd CMAQ-CMAQv5.3.2_12Oct2020/
+    -vi bldit_project.csh
+        set CMAQ_HOME = /projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/CMAQ_Project
+    -:wq
+    -./bldit_project.csh
+    -cd /projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/CMAQ_Project
+    -vi config_cmaq.csh
+            ..........go to gfortran compiler section…………………
+        case gcc:
+            setenv IOAPI_MOD_DIR /projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/LIBRARIES/ioapi/lib
+            setenv IOAPI_INCL_DIR /projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/LIBRARIES/ioapi/lib
+            setenv IOAPI_LIB_DIR /projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/LIBRARIES/ioapi/lib
+            setenv NETCDF_LIB_DIR /projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/LIBRARIES/netcdf/lib
+            setenv NETCDF_INCL_DIR /projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/LIBRARIES/netcdf/include
+            setenv MPI_LIB_DIR /projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/LIBRARIES/mpich
+
+            .........go to #> I/O API, netCDF, and MPI libraries section.............
+
+            setenv netcdf_lib "-lnetcdf -lnetcdff -lgomp" #> -lnetcdff -lnetcdf for netCDF v4.2.0 and later
+    -:wq
+    -./config_cmaq.csh gcc
 
 
+Compile ICON preprocess:
 
+    -cd PREP/icon/scripts
+    -./bldit_icon.csh gcc
+    .........Check icon execution.........
+    -ls -al BLD_ICON_v532_gcc/ICON_v532.exe
+    .....If you see file “ICON_v532_profile.exe“, it has built successfully
+    -vi run_icon.csh
+        setenv compiler gcc
+    -:wq   
+    -./run_icon.csh
+
+Compile BCON preprocess:
+    -cd /projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/CMAQ_Project/PREP/bcon/scripts
+    -./bldit_bcon.csh gcc
+    .....If you see file “BCON_v532_profile.exe“, it has built successfully
+    -ls -al BLD_BCON_v532_gcc/BCON_v532.exe
+        .....If you see file “BCON_v532_profile.exe“, it has built successfully
+
+
+Compile CCTM preprocess:
+    -cd /projects/HAQ_LAB/mrasel/cmaq/Build_CMAQ/CMAQ_Project/CCTM/scripts
+    -./bldit_cctm.csh gcc
+    -ls -al BLD_CCTM_v532_gcc/CCTM_v532.exe
+    -If you see file “CCTM_v521.exe“, you are right.
+
+.......END.........
 
